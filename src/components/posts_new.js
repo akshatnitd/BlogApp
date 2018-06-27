@@ -1,36 +1,87 @@
 import React, { Component } from 'react';
-// import { connect } from 'react-redux';
-// import { fetchPosts } from '../actions';
-// import _ from 'lodash';
+import { Field, reduxForm } from 'redux-form';
+import { Link } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { createPost } from '../actions';
 
 class PostsNew extends Component {
 
-  // componentDidMount() {
-  //   this.props.fetchPosts();
-  // }
+  renderField(field) {
+    const { meta : { touched, error } } = field;
+    const className = `form-group ${touched && error ? 'has-danger' : ''}`;
+    return (
+      <div className={className}>
+        <label>{field.label}</label>
+        <input
+          className="form control"
+          {...field.input}
+        />
+        <div className="text-help">
+          {field.meta.touched ? field.meta.error : ""}
+        </div>
+      </div>
+    );
+  }
 
-  // renderPosts = () => {
-  //   return _.map(this.props.posts, post => {
-  //     return(
-  //       <li className="list-group-item" key={post.id}>
-  //         {post.title}
-  //       </li>
-  //     );
-  //   });
-  // }
+  onSubmit = (values) => {
+    this.props.createPost(values, () => {
+      this.props.history.push('/');
+    });
+}
 
   render() {
-    console.log(this.props.posts);
+    const { handleSubmit } = this.props;
     return (
-      <div>
-          New Post!
-      </div>
+      <form onSubmit={handleSubmit(this.onSubmit)}>
+          <Field
+            name ="title"
+            label="Title"
+            type="text"
+            component={this.renderField}
+          />
+          <Field
+            name ="categories"
+            label ="Tags"
+            type="text"
+            component={this.renderField}
+          />
+          <Field
+            name ="content"
+            label ="Post Content"
+            type="text"
+            component={this.renderField}
+          />
+          <button type="submit" className="btn btn-primary">Submit</button>
+          <Link to="/" className="btn btn-danger">
+            Cancel
+          </Link>
+      </form>
       );
     }
   }
 
-  // function mapStateToProps(state) {
-  //   return { posts: state.posts };
-  // }
+  function validate(values) {
+    const errors = {};
 
-  export default PostsNew; // connect( mapStateToProps, { fetchPosts })(PostsIndex);
+    if(!values.title) {
+      errors.title = "Enter a title";
+    }
+
+    if(!values.categories) {
+      errors.categories = "Enter some blog Category";
+    }
+
+    if(!values.content) {
+      errors.content = "Enter the blog content";
+    }
+
+    return errors;
+  }
+
+
+  export default reduxForm({
+    validate,
+    form: 'PostsNewForm'
+  })(
+    connect(null, { createPost })(PostsNew)
+  );
